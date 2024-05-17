@@ -1,6 +1,15 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
+typedef struct Room
+{
+    int x;
+    int y;
+    int width;
+    int height;
+
+} Room;
+
 typedef struct Player
 {
     int x;
@@ -10,11 +19,15 @@ typedef struct Player
 } Player;
 
 int screenSetup();
-int mapSetup();
+Room **mapSetup();
 Player *playerSetup();
 int handleInput(int input, Player *user);
 int checkPosition(int newY, int newX, Player *user);
 int playerMove(int y, int x, Player *user);
+int drawRoom(Room *room);
+
+/* room functions */
+Room *createRoom(int x, int y, int width, int height);
 
 int main(void)
 {
@@ -48,22 +61,60 @@ int screenSetup()
     return 1;
 }
 
-int mapSetup()
+Room **mapSetup()
 {
-    // mvprintw(y, x, "string")
-    mvprintw(13, 13, "--------");
-    mvprintw(14, 13, "|......|");
-    mvprintw(15, 13, "|......|");
-    mvprintw(16, 13, "|......|");
-    mvprintw(17, 13, "|......|");
-    mvprintw(18, 13, "--------");
+    Room **rooms;
+    rooms = malloc(sizeof(Room) * 6);
 
-    mvprintw(3, 33, "----------");
-    mvprintw(4, 33, "|........|");
-    mvprintw(5, 33, "|........|");
-    mvprintw(6, 33, "|........|");
-    mvprintw(7, 33, "|........|");
-    mvprintw(8, 33, "----------");
+    rooms[0] = createRoom(13, 13, 6, 8);
+    drawRoom(rooms[0]);
+    rooms[1] = createRoom(33, 3, 10, 6);
+    drawRoom(rooms[1]);
+    rooms[2] = createRoom(45, 15, 8, 6);
+    drawRoom(rooms[2]);
+}
+
+Room *createRoom(int x, int y, int width, int height)
+{
+    Room *newRoom;
+    newRoom = (Room *)malloc(sizeof(Room));
+
+    newRoom->x = x;
+    newRoom->y = y;
+    newRoom->width = width;
+    newRoom->height = height;
+
+    return newRoom;
+}
+
+int drawRoom(Room *room)
+{
+    int x;
+    int y;
+    int width = room->width;
+    int height = room->height;
+
+    // Draw the top and bottom walls
+    for (x = room->x; x < room->x + width; x++)
+    {
+        mvprintw(room->y, x, "-");
+        // 2 points are y2 - y1 + 1 heigh
+        mvprintw(room->y + height - 1, x, "-");
+    }
+
+    // Draw the side walls and floor
+    for (y = room->y + 1; y < room->y + height - 1; y++)
+    {
+        mvprintw(y, room->x, "|");
+        // 2 points are x2 - x1 + 1 wide
+        mvprintw(y, room->x + width - 1, "|");
+        for (x = room->x + 1; x < room->x + width - 1; x++)
+        {
+            mvprintw(y, x, ".");
+        }
+    }
+
+    return 1;
 }
 
 Player *playerSetup()
