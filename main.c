@@ -12,6 +12,9 @@ typedef struct Player
 int screenSetup();
 int mapSetup();
 Player *playerSetup();
+int handleInput(int input, Player *user);
+int checkPosition(int newY, int newX, Player *user);
+int playerMove(int y, int x, Player *user);
 
 int main(void)
 {
@@ -22,10 +25,15 @@ int main(void)
 
     user = playerSetup();
 
+    /* main game loop */
     while ((ch = getch()) != 'q')
     {
+        handleInput(ch, user);
     }
     endwin(); // End ncurses
+
+    // Free memory
+    free(user);
 
     return 0;
 }
@@ -37,7 +45,7 @@ int screenSetup()
     noecho();              // Don't echo any keypresses
     refresh();             // Refresh the screen is used to update the screen
 
-    return 0;
+    return 1;
 }
 
 int mapSetup()
@@ -66,8 +74,76 @@ Player *playerSetup()
     newPlayer->y = 14;
     newPlayer->health = 20;
 
-    mvprintw(newPlayer->y, newPlayer->x, "@");
-    move(newPlayer->y, newPlayer->x);
+    playerMove(newPlayer->y, newPlayer->x, newPlayer);
 
     return newPlayer;
+}
+
+int handleInput(int input, Player *user)
+{
+    int newY, newX;
+    switch (input)
+    {
+    // Move up
+    case 'w':
+    case 'W':
+        newY = user->y - 1;
+        newX = user->x;
+        break;
+
+    // Move down
+    case 's':
+    case 'S':
+        newY = user->y + 1;
+        newX = user->x;
+        break;
+
+    // Move left
+    case 'a':
+    case 'A':
+        newY = user->y;
+        newX = user->x - 1;
+        break;
+
+    // Move right
+    case 'd':
+    case 'D':
+        newY = user->y;
+        newX = user->x + 1;
+        break;
+
+    default:
+        break;
+    }
+
+    checkPosition(newY, newX, user);
+}
+
+/* check what is at next position */
+int checkPosition(int newY, int newX, Player *user)
+{
+    int space;
+    switch (mvinch(newY, newX))
+    {
+    case '.':
+        playerMove(newY, newX, user);
+        break;
+
+    default:
+        move(user->y, user->x);
+        break;
+    }
+}
+
+int playerMove(int y, int x, Player *user)
+{
+    mvprintw(user->y, user->x, ".");
+    user->y = y;
+    user->x = x;
+
+    mvprintw(user->y, user->x, "@");
+    move(user->y, user->x);
+    refresh();
+
+    return 1;
 }
