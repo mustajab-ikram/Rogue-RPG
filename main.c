@@ -1,5 +1,6 @@
 #include <ncurses.h>
 #include <stdlib.h>
+#include <time.h>
 
 typedef struct Position
 {
@@ -12,6 +13,8 @@ typedef struct Room
     Position position;
     int width;
     int height;
+
+    Position **doors;
 
 } Room;
 
@@ -62,6 +65,7 @@ int screenSetup()
     noecho();              // Don't echo any keypresses
     refresh();             // Refresh the screen is used to update the screen
 
+    srand(time(NULL)); // Seed random number generator
     return 1;
 }
 
@@ -87,6 +91,28 @@ Room *createRoom(int x, int y, int width, int height)
     newRoom->position.y = y;
     newRoom->width = width;
     newRoom->height = height;
+
+    newRoom->doors = (Position **)malloc(sizeof(Position) * 4);
+
+    // top door
+    newRoom->doors[0] = (Position *)malloc(sizeof(Position));
+    newRoom->doors[0]->x = rand() % (width - 2) + x + 1;
+    newRoom->doors[0]->y = y;
+
+    // bottom door
+    newRoom->doors[1] = (Position *)malloc(sizeof(Position));
+    newRoom->doors[1]->x = rand() % (width - 2) + x + 1;
+    newRoom->doors[1]->y = y + height - 1;
+
+    // left door
+    newRoom->doors[2] = (Position *)malloc(sizeof(Position));
+    newRoom->doors[2]->x = newRoom->position.x;
+    newRoom->doors[2]->y = rand() % (height - 2) + y + 1;
+
+    // right door
+    newRoom->doors[3] = (Position *)malloc(sizeof(Position));
+    newRoom->doors[3]->x = newRoom->position.x + width - 1;
+    newRoom->doors[3]->y = rand() % (height - 2) + y + 1;
 
     return newRoom;
 }
@@ -117,6 +143,12 @@ int drawRoom(Room *room)
             mvprintw(y, x, ".");
         }
     }
+
+    /* draw doors */
+    mvprintw(room->doors[0]->y, room->doors[0]->x, "+");
+    mvprintw(room->doors[1]->y, room->doors[1]->x, "+");
+    mvprintw(room->doors[2]->y, room->doors[2]->x, "+");
+    mvprintw(room->doors[3]->y, room->doors[3]->x, "+");
 
     return 1;
 }
